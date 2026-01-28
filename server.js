@@ -89,6 +89,42 @@ function extractField(data, ...fieldNames) {
   return '';
 }
 
+// Build comprehensive notes from CallTools data
+function buildNotes(data) {
+  const parts = [];
+
+  // Get the timestamp
+  const now = new Date();
+  const timestamp = now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' });
+  parts.push(`[CallTools - ${timestamp}]`);
+
+  // Disposition
+  const disposition = extractField(data, 'disposition', 'Disposition', 'call_disposition', 'CallDisposition');
+  if (disposition) parts.push(`Disposition: ${disposition}`);
+
+  // Agent info
+  const agent = extractField(data, 'agent', 'Agent', 'agent_name', 'agentName', 'user', 'User', 'rep', 'representative');
+  if (agent) parts.push(`Agent: ${agent}`);
+
+  // Call duration
+  const duration = extractField(data, 'call_duration', 'callDuration', 'duration', 'Duration', 'talk_time', 'talkTime');
+  if (duration) parts.push(`Duration: ${duration}`);
+
+  // Campaign
+  const campaign = extractField(data, 'campaign', 'Campaign', 'campaign_name', 'campaignName');
+  if (campaign) parts.push(`Campaign: ${campaign}`);
+
+  // List/Lead list
+  const list = extractField(data, 'list', 'List', 'list_name', 'listName', 'lead_list', 'leadList');
+  if (list) parts.push(`List: ${list}`);
+
+  // Original notes from CallTools
+  const originalNotes = extractField(data, 'notes', 'Notes', 'comments', 'Comments', 'note', 'call_notes', 'callNotes');
+  if (originalNotes) parts.push(`Notes: ${originalNotes}`);
+
+  return parts.join('\n');
+}
+
 // Map CallTools data to QuickBase fields
 function mapToQuickBase(calltoolsData) {
   const data = calltoolsData;
@@ -110,7 +146,7 @@ function mapToQuickBase(calltoolsData) {
     "126": { value: extractField(data, 'appointment_time', 'appointmentTime', 'appt_time', 'AppointmentTime') },
     "184": { value: extractField(data, 'campaign_id', 'campaignId', 'campaign', 'CampaignId', 'Campaign') },
     "15": { value: extractField(data, 'product', 'Product', 'service', 'Service') },
-    "7": { value: extractField(data, 'notes', 'Notes', 'comments', 'Comments', 'note') },
+    "7": { value: buildNotes(data) },
     "54": { value: extractField(data, 'lead_source', 'leadSource', 'source', 'LeadSource') || 'CallTools' },
     "177": { value: extractField(data, 'lead_source_subcategory', 'leadSourceSubcategory', 'subcategory', 'LeadSourceSubcategory') || 'Cita Spanish' }
   };

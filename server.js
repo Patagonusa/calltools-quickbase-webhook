@@ -63,6 +63,21 @@ function formatZip(zip) {
   return digits.slice(0, 5).padStart(5, '0');
 }
 
+// Format date to MM-DD-YYYY for QuickBase
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  // Try to parse various date formats
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) {
+    // If can't parse, return as-is
+    return dateStr;
+  }
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${month}-${day}-${year}`;
+}
+
 // Extract field from CallTools payload (handles various field naming conventions)
 function extractField(data, ...fieldNames) {
   for (const name of fieldNames) {
@@ -142,13 +157,13 @@ function mapToQuickBase(calltoolsData) {
     "110": { value: formatPhone(extractField(data, 'alt_phone', 'altPhone', 'alternate_phone', 'work_phone', 'AltPhone')) },
     "111": { value: extractField(data, 'email', 'email_address', 'Email', 'EmailAddress') },
     "160": { value: extractField(data, 'branch', 'Branch', 'office') },
-    "11": { value: extractField(data, 'appointment_date', 'appointmentDate', 'appt_date', 'AppointmentDate') },
+    "11": { value: formatDate(extractField(data, 'appointment_date', 'appointmentDate', 'appt_date', 'AppointmentDate')) },
     "126": { value: extractField(data, 'appointment_time', 'appointmentTime', 'appt_time', 'AppointmentTime') },
     "184": { value: extractField(data, 'campaign_id', 'campaignId', 'campaign', 'CampaignId', 'Campaign') },
     "15": { value: extractField(data, 'product', 'Product', 'service', 'Service') },
     "7": { value: buildNotes(data) },
-    "54": { value: extractField(data, 'lead_source', 'leadSource', 'source', 'LeadSource') || 'CallTools' },
-    "177": { value: extractField(data, 'lead_source_subcategory', 'leadSourceSubcategory', 'subcategory', 'LeadSourceSubcategory') || 'Cita Spanish' }
+    "54": { value: extractField(data, 'lead_source', 'leadSource', 'source', 'LeadSource') },
+    "177": { value: extractField(data, 'lead_source_subcategory', 'leadSourceSubcategory', 'subcategory', 'LeadSourceSubcategory') }
   };
 }
 

@@ -63,19 +63,39 @@ function formatZip(zip) {
   return digits.slice(0, 5).padStart(5, '0');
 }
 
-// Format date to MM-DD-YYYY for QuickBase
+// Format date to YYYY-MM-DD (ISO) for QuickBase
 function formatDate(dateStr) {
   if (!dateStr) return '';
-  // Try to parse various date formats
-  const date = new Date(dateStr);
-  if (isNaN(date.getTime())) {
-    // If can't parse, return as-is
+
+  // Handle MM/DD/YYYY format
+  const slashMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (slashMatch) {
+    const [, month, day, year] = slashMatch;
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  }
+
+  // Handle MM-DD-YYYY format
+  const dashMatch = dateStr.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+  if (dashMatch) {
+    const [, month, day, year] = dashMatch;
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  }
+
+  // Handle YYYY-MM-DD (already ISO)
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
     return dateStr;
   }
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const year = date.getFullYear();
-  return `${month}-${day}-${year}`;
+
+  // Try to parse other formats
+  const date = new Date(dateStr);
+  if (!isNaN(date.getTime())) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  return '';
 }
 
 // Extract field from CallTools payload (handles various field naming conventions)
